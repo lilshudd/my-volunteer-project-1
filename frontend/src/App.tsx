@@ -88,7 +88,7 @@ export default function App() {
   return (
     <UserContext.Provider value={user}>
       <UserUpdateContext.Provider value={setUser}>
-        <BrowserRouter>
+        <BrowserRouter basename="/my-volunteer-project">
           <NavBar />
           <ToastContainer position="top-right" autoClose={3000} />
           <Routes>
@@ -167,8 +167,9 @@ export default function App() {
                 </PrivateRoute>
               }
             />
-            <Route path="*" element={<div>Головна сторінка або 404</div>} />
+            
           </Routes>
+          {/* <Route path="*" element={<div>Головна сторінка або 404</div>} /> */}
         </BrowserRouter>
       </UserUpdateContext.Provider>
     </UserContext.Provider>
