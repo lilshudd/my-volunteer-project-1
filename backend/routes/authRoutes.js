@@ -3,8 +3,14 @@ import express from "express";
 import {
   register,
   login,
+  logout,
+  refresh,
   getProfile,
   updateProfile,
+  getOrganizerRequests,
+  approveOrganizer,
+  getAllUsers,
+  updateUserRole,
 } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -47,9 +53,14 @@ router.post(
   login
 );
 
+// Додаємо logout
+router.post("/logout", logout);
+
+// Додаємо refresh токена
+router.post("/refresh", refresh);
+
 router.get("/me", authMiddleware, getProfile);
 
-// Додаємо роут для оновлення профілю
 router.put(
   "/me",
   authMiddleware,
@@ -73,5 +84,14 @@ router.put(
   },
   updateProfile
 );
+
+router.get("/organizer-requests", authMiddleware, getOrganizerRequests);
+
+router.post("/approve-organizer/:id", authMiddleware, approveOrganizer);
+
+router.get("/users", authMiddleware, getAllUsers);
+
+// Роут для зміни ролі користувача (тільки для admin)
+router.patch("/users/:id/role", authMiddleware, updateUserRole);
 
 export default router;

@@ -57,6 +57,7 @@ export default function EditProfilePage() {
   };
 
   return (
+    <div className="container">
     <form onSubmit={handleSubmit}>
       <h2>Редагування профілю</h2>
       <input
@@ -82,5 +83,6 @@ export default function EditProfilePage() {
       <button type="submit">Зберегти</button>
       {error && <div style={{ color: "red" }}>{error}</div>}
     </form>
+    </div>
   );
 }

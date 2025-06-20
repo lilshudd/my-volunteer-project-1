@@ -23,7 +23,13 @@ export const authMiddleware = (req, res, next) => {
 
     // Перевіряємо токен
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // додаємо дані користувача до req
+
+    // Гарантуємо наявність id, role, name у req.user
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+      name: decoded.name,
+    };
 
     next();
   } catch (error) {

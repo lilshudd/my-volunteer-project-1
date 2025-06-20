@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 type Project = {
   _id: string;
@@ -24,12 +25,7 @@ export default function UserProfilePage() {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetchWithAuth(`/api/auth/me`);
         if (!res.ok) throw new Error("Не вдалося отримати дані користувача");
         const data = await res.json();
         setUser(data);
@@ -48,7 +44,7 @@ export default function UserProfilePage() {
   if (!user) return <div>Користувача не знайдено</div>;
 
   return (
-    <div>
+    <div className="container">
       <h2>Профіль користувача</h2>
       <div><b>Ім'я:</b> {user.name}</div>
       <div><b>Email:</b> {user.email}</div>

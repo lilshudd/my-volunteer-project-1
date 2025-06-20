@@ -5,6 +5,7 @@ const projectSchema = new mongoose.Schema({
   description: { type: String, required: true }, // Опис проєкту
   dateStart: { type: Date, required: true }, // Дата початку
   dateEnd: { type: Date }, // Дата закінчення
+  location: { type: String },
   organizer: {
     // Хто створив проєкт (користувач)
     type: mongoose.Schema.Types.ObjectId,

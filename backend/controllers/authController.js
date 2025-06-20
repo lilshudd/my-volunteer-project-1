@@ -2,11 +2,27 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+// Додаємо cookie-parser для роботи з cookie
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "superrefreshsecret";
 
 const allowedRoles = ["user", "organizer", "admin"];
+
+// Генерація токенів
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { id: user._id, role: user.role, name: user.name },
+    JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+  const refreshToken = jwt.sign(
+    { id: user._id, role: user.role, name: user.name },
+    JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+  return { accessToken, refreshToken };
+}
 
 // Реєстрація користувача
 export const register = async (req, res) => {
@@ -34,27 +50,32 @@ export const register = async (req, res) => {
       email: normalizedEmail,
       password: hashedPassword,
       role: assignedRole,
-      organizerRequest: !!organizerRequest, // ДОДАНО: зберігаємо заявку
+      organizerRequest: !!organizerRequest, // Зберігаємо заявку
     });
 
-    // Додаємо генерацію accessToken одразу після реєстрації
-    const accessToken = jwt.sign(
-      { id: newUser._id, role: newUser.role, name: newUser.name },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    // Генеруємо токени одразу після реєстрації
+    const { accessToken, refreshToken } = generateTokens(newUser);
 
-    res.status(201).json({
-      message: "User registered successfully",
-      accessToken,
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        organizerRequest: newUser.organizerRequest, // ДОДАНО: повертаємо заявку
-      },
-    });
+    // Відправляємо refresh токен у httpOnly cookie
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 днів
+      })
+      .status(201)
+      .json({
+        message: "User registered successfully",
+        accessToken,
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          organizerRequest: newUser.organizerRequest,
+        },
+      });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -80,30 +101,29 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid email or password" });
 
-    // Створюємо access та refresh токени
-    const accessToken = jwt.sign(
-      { id: user._id, role: user.role, name: user.name },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    // Створюємо токени
+    const { accessToken, refreshToken } = generateTokens(user);
 
-    const refreshToken = jwt.sign({ id: user._id }, JWT_REFRESH_SECRET, {
-      expiresIn: "7d",
-    });
-
-    // Відповідь з токенами
-    res.status(200).json({
-      message: "Login successful",
-      accessToken,
-      refreshToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        organizerRequest: user.organizerRequest, // ДОДАНО: повертаємо заявку
-      },
-    });
+    // Відправляємо refresh токен у httpOnly cookie
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 днів
+      })
+      .status(200)
+      .json({
+        message: "Login successful",
+        accessToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          organizerRequest: user.organizerRequest,
+        },
+      });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -111,14 +131,23 @@ export const login = async (req, res) => {
 
 // Логаут користувача
 export const logout = async (req, res) => {
-  res.status(200).json({ message: "Logout successful" });
+  res
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    })
+    .status(200)
+    .json({ message: "Logout successful" });
 };
 
-// Оновлення access токена через refresh токен
+// Оновлення access токена через refresh токен (з cookie)
 export const refresh = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-
+    const refreshToken =
+      req.cookies?.refreshToken ||
+      req.body?.refreshToken ||
+      req.headers["x-refresh-token"];
     if (!refreshToken) {
       return res.status(401).json({ message: "Refresh token required" });
     }
@@ -133,7 +162,7 @@ export const refresh = async (req, res) => {
       const accessToken = jwt.sign(
         { id: user._id, role: user.role, name: user.name },
         JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "15m" }
       );
 
       res.status(200).json({ accessToken });
@@ -173,8 +202,76 @@ export const updateProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      organizerRequest: user.organizerRequest, // ДОДАНО: повертаємо заявку
+      organizerRequest: user.organizerRequest,
     });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// Отримати всіх користувачів із заявкою на організатора (тільки для admin)
+export const getOrganizerRequests = async (req, res) => {
+  try {
+    if (req.user.role !== "admin")
+      return res.status(403).json({ message: "Access denied" });
+    const users = await User.find({ organizerRequest: true }).select(
+      "-password"
+    );
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// Підтвердити заявку (змінити роль, тільки для admin)
+export const approveOrganizer = async (req, res) => {
+  try {
+    if (req.user.role !== "admin")
+      return res.status(403).json({ message: "Access denied" });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.role = "organizer";
+    user.organizerRequest = false;
+    await user.save();
+    res.json({ message: "Роль організатора підтверджено", user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// Отримати всіх користувачів (тільки для admin)
+export const getAllUsers = async (req, res) => {
+  try {
+    if (req.user.role !== "admin")
+      return res.status(403).json({ message: "Access denied" });
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// Змінити роль користувача (тільки для admin)
+export const updateUserRole = async (req, res) => {
+  try {
+    if (req.user.role !== "admin")
+      return res.status(403).json({ message: "Access denied" });
+
+    const { id } = req.params;
+    const { role } = req.body;
+    const allowedRoles = ["user", "organizer", "admin"];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.role = role;
+    await user.save();
+
+    res.json({ message: "Role updated", user });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }

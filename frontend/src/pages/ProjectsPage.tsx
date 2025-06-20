@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CreateProjectButton from "../components/CreateProjectButton";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 type Project = {
   _id: string;
-  name: string;
+  title: string;
   description: string;
   image?: string;
-  organizer: { _id: string; name?: string };
+  organizer?: { _id: string; name?: string };
 };
 
 export default function ProjectsPage() {
@@ -23,12 +24,7 @@ export default function ProjectsPage() {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("/api/projects", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetchWithAuth("/api/projects");
         if (!res.ok) {
           throw new Error("Не вдалося отримати проєкти");
         }
@@ -48,57 +44,63 @@ export default function ProjectsPage() {
   }, []);
 
   const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(search.toLowerCase()) &&
-    project.description.toLowerCase().includes(descFilter.toLowerCase()) &&
+    (project.title || "")
+      .toLowerCase()
+      .includes(search.toLowerCase()) &&
+    (project.description || "")
+      .toLowerCase()
+      .includes(descFilter.toLowerCase()) &&
     (authorFilter === "" ||
-      (project.organizer?.name || "")
+      ((project.organizer?.name || "")
         .toLowerCase()
-        .includes(authorFilter.toLowerCase()))
+        .includes(authorFilter.toLowerCase())))
   );
 
   if (loading) return <div>Завантаження...</div>;
   if (error) return <div style={{ color: "red" }}>{error}</div>;
 
   return (
-    <div>
+    <div className="container">
       <div style={{ marginBottom: "1rem" }}>
-        <CreateProjectButton /> {/* Замість Link */}
+        <CreateProjectButton />
       </div>
-      <input
-        type="text"
-        placeholder="Пошук за назвою..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ marginBottom: "0.5rem", width: "100%", maxWidth: 400 }}
-      />
-      <input
-        type="text"
-        placeholder="Пошук за описом..."
-        value={descFilter}
-        onChange={e => setDescFilter(e.target.value)}
-        style={{ marginBottom: "0.5rem", width: "100%", maxWidth: 400 }}
-      />
-      <input
-        type="text"
-        placeholder="Пошук за автором..."
-        value={authorFilter}
-        onChange={e => setAuthorFilter(e.target.value)}
-        style={{ marginBottom: "1rem", width: "100%", maxWidth: 400 }}
-      />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+        <input
+          type="text"
+          placeholder="Пошук за назвою..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ width: "100%", maxWidth: 250 }}
+        />
+        <input
+          type="text"
+          placeholder="Пошук за описом..."
+          value={descFilter}
+          onChange={e => setDescFilter(e.target.value)}
+          style={{ width: "100%", maxWidth: 250 }}
+        />
+        <input
+          type="text"
+          placeholder="Пошук за автором..."
+          value={authorFilter}
+          onChange={e => setAuthorFilter(e.target.value)}
+          style={{ width: "100%", maxWidth: 250 }}
+        />
+      </div>
       <h2>Список проєктів</h2>
       {filteredProjects.length === 0 && <div>Немає проєктів</div>}
       <ul>
         {filteredProjects.map((project) => (
-          <li key={project._id}>
+          <li key={project._id} className="project-card">
             <Link to={`/projects/${project._id}`}>
-              <strong>{project.name}</strong>
+              <strong>{project.title}</strong>
             </Link>
             <div>{project.description}</div>
             {project.image && (
               <img
                 src={`/uploads/${project.image}`}
                 alt="Логотип проєкту"
-                style={{ maxWidth: 100, maxHeight: 100 }}
+                style={{ maxWidth: 100, maxHeight: 100, marginTop: 4 }}
               />
             )}
             <div>

@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { fetchWithAuth } from "../api/fetchWithAuth";
+import MDEditor from "@uiw/react-md-editor";
 
 type Project = {
   _id: string;
-  name: string;
+  title: string;
   description: string;
   image?: string;
   participants?: string[];
   organizer: { _id: string; name?: string; email?: string };
+  location?: string;
+  dateStart?: string;
+  dateEnd?: string;
 };
 
 function getUserIdFromToken(): string | null {
@@ -38,12 +43,7 @@ export default function ProjectDetailsPage() {
       setLoading(true);
       setError("");
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/projects/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetchWithAuth(`/api/projects/${id}`);
         if (!res.ok) {
           throw new Error("Не вдалося отримати проєкт");
         }
@@ -66,12 +66,8 @@ export default function ProjectDetailsPage() {
     setJoining(true);
     setJoinError("");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/projects/${id}/participate`, {
+      const res = await fetchWithAuth(`/api/projects/${id}/participate`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
       if (!res.ok) {
         const data = await res.json();
@@ -93,12 +89,8 @@ export default function ProjectDetailsPage() {
     setJoining(true);
     setJoinError("");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/projects/${id}/participate`, {
+      const res = await fetchWithAuth(`/api/projects/${id}/participate`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
       if (!res.ok) {
         const data = await res.json();
@@ -119,12 +111,8 @@ export default function ProjectDetailsPage() {
   const handleDelete = async () => {
     if (!window.confirm("Ви впевнені, що хочете видалити цей проєкт?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetchWithAuth(`/api/projects/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
       if (!res.ok) {
         toast.error("Не вдалося видалити проєкт");
@@ -145,9 +133,29 @@ export default function ProjectDetailsPage() {
   const isAuthor = project.organizer && project.organizer._id === userId;
 
   return (
-    <div>
-      <h2>{project.name}</h2>
-      <div>{project.description}</div>
+    <div className="container">
+      <h2>{project.title}</h2>
+      {/* Інформаційний блок про проєкт */}
+      <div className="project-info-block">
+        <div>
+          <strong>Організатор:</strong> {project.organizer?.name || "Невідомо"}
+        </div>
+        <div>
+          <strong>Кількість учасників:</strong> {project.participants?.length || 0}
+        </div>
+        <div>
+          <strong>Місце проведення:</strong> {project.location || "Не вказано"}
+        </div>
+        <div>
+          <strong>Дата початку:</strong>{" "}
+          {project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "Не вказано"}
+        </div>
+        <div>
+          <strong>Дата завершення:</strong>{" "}
+          {project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "Не вказано"}
+        </div>
+      </div>
+      <MDEditor.Markdown source={project.description} />
       {project.image && (
         <img
           src={`/uploads/${project.image}`}

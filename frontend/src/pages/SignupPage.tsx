@@ -7,7 +7,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [wantsOrganizer, setWantsOrganizer] = useState(false); // ДОДАНО
+  const [wantsOrganizer, setWantsOrganizer] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, organizerRequest: wantsOrganizer }), // ДОДАНО
+        body: JSON.stringify({ email, password, name, organizerRequest: wantsOrganizer }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -59,6 +59,7 @@ export default function SignupPage() {
   };
 
   return (
+    <div className="container">
     <form onSubmit={handleSubmit}>
       <h2>Реєстрація</h2>
       <input
@@ -97,5 +98,6 @@ export default function SignupPage() {
         Вже є акаунт? <Link to="/login">Увійти</Link>
       </div>
     </form>
+    </div>
   );
 }

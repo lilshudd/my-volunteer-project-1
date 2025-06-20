@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { fetchWithAuth } from "../api/fetchWithAuth";
+import MDEditor from "@uiw/react-md-editor";
 
 export default function EditProjectPage() {
   const { id } = useParams<{ id: string }>();
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [dateStart, setDateStart] = useState("");
+  const [dateEnd, setDateEnd] = useState("");
   const [currentImage, setCurrentImage] = useState<string | undefined>(undefined);
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -14,16 +19,14 @@ export default function EditProjectPage() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/projects/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetchWithAuth(`/api/projects/${id}`);
         if (!res.ok) throw new Error("Не вдалося отримати проєкт");
         const data = await res.json();
-        setName(data.name || data.title || "");
+        setTitle(data.title || "");
         setDescription(data.description || "");
+        setLocation(data.location || "");
+        setDateStart(data.dateStart ? data.dateStart.slice(0, 10) : "");
+        setDateEnd(data.dateEnd ? data.dateEnd.slice(0, 10) : "");
         setCurrentImage(data.image);
       } catch {
         setError("Помилка завантаження проєкту");
@@ -33,10 +36,13 @@ export default function EditProjectPage() {
   }, [id]);
 
   const validate = () => {
-    if (!name.trim()) return "Введіть назву проєкту";
-    if (name.length < 3) return "Назва має містити мінімум 3 символи";
-    if (!description.trim()) return "Введіть опис проєкту";
-    if (description.length < 10) return "Опис має містити мінімум 10 символів";
+    if (!title.trim()) return "Введіть назву проєкту";
+    if (title.length < 3) return "Назва має містити мінімум 3 символи";
+    if (!description || description.replace(/<[^>]+>/g, '').trim().length < 10)
+      return "Опис має містити мінімум 10 символів";
+    if (!location.trim()) return "Вкажіть місце проведення";
+    if (!dateStart) return "Вкажіть дату початку";
+    if (dateEnd && dateEnd < dateStart) return "Дата завершення не може бути раніше дати початку";
     return "";
   };
 
@@ -50,17 +56,16 @@ export default function EditProjectPage() {
     }
     setValidationError("");
     try {
-      const token = localStorage.getItem("token");
       const formData = new FormData();
-      formData.append("name", name);
+      formData.append("title", title);
       formData.append("description", description);
+      formData.append("location", location);
+      formData.append("dateStart", dateStart);
+      if (dateEnd) formData.append("dateEnd", dateEnd);
       if (image) formData.append("image", image);
 
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetchWithAuth(`/api/projects/${id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
       if (!res.ok) {
@@ -75,38 +80,57 @@ export default function EditProjectPage() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Редагувати проєкт</h2>
-      <input
-        type="text"
-        placeholder="Назва проєкту"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        required
-      />
-      <textarea
-        placeholder="Опис"
-        value={description}
-        onChange={e => setDescription(e.target.value)}
-        required
-      />
-      {currentImage && (
-        <div>
-          <img
-            src={`/uploads/${currentImage}`}
-            alt="Логотип проєкту"
-            style={{ maxWidth: 120, maxHeight: 120, marginBottom: "1rem" }}
-          />
-        </div>
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={e => setImage(e.target.files?.[0] || null)}
-      />
-      <button type="submit">Зберегти</button>
-      {validationError && <div style={{ color: "orange" }}>{validationError}</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
-    </form>
+    <div className="container">
+      <form onSubmit={handleSubmit}>
+        <h2>Редагувати проєкт</h2>
+        <input
+          type="text"
+          placeholder="Назва проєкту"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Місце проведення"
+          value={location}
+          onChange={e => setLocation(e.target.value)}
+          required
+        />
+        <MDEditor
+          value={description}
+          onChange={value => setDescription(value || "")}
+          height={200}
+        />
+        <input
+          type="date"
+          value={dateStart}
+          onChange={e => setDateStart(e.target.value)}
+          required
+        />
+        <input
+          type="date"
+          value={dateEnd}
+          onChange={e => setDateEnd(e.target.value)}
+        />
+        {currentImage && (
+          <div>
+            <img
+              src={`/uploads/${currentImage}`}
+              alt="Логотип проєкту"
+              style={{ maxWidth: 120, maxHeight: 120, marginBottom: "1rem" }}
+            />
+          </div>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={e => setImage(e.target.files?.[0] || null)}
+        />
+        <button type="submit">Зберегти</button>
+        {validationError && <div style={{ color: "orange" }}>{validationError}</div>}
+        {error && <div style={{ color: "red" }}>{error}</div>}
+      </form>
+    </div>
   );
 }

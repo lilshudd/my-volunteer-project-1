@@ -37,6 +37,7 @@ export default function LoginPage() {
   };
 
   return (
+    <div className="container">
     <form onSubmit={handleSubmit}>
       <h2>Вхід</h2>
       <input
@@ -59,5 +60,6 @@ export default function LoginPage() {
         Ще не маєте акаунта? <Link to="/signup">Зареєструватися</Link>
       </div>
     </form>
+    </div>
   );
 }

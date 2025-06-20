@@ -3,7 +3,7 @@ import Project from "../models/Project.js";
 // Створити проєкт
 export const createProject = async (req, res, next) => {
   try {
-    const { title, description, dateStart, dateEnd } = req.body;
+    const { title, description, dateStart, dateEnd, location } = req.body;
 
     if (dateEnd && new Date(dateEnd) < new Date(dateStart)) {
       return res
@@ -18,6 +18,7 @@ export const createProject = async (req, res, next) => {
       description,
       dateStart,
       dateEnd,
+      location,
       organizer: req.user.id,
       image,
     });
@@ -55,6 +56,7 @@ export const getProjectById = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 // Оновити проєкт (тільки організатор)
 export const updateProject = async (req, res, next) => {
   try {
@@ -68,7 +70,7 @@ export const updateProject = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const { title, description, dateStart, dateEnd } = req.body;
+    const { title, description, dateStart, dateEnd, location } = req.body;
 
     if (dateEnd && dateStart && new Date(dateEnd) < new Date(dateStart)) {
       return res
@@ -80,6 +82,7 @@ export const updateProject = async (req, res, next) => {
     project.description = description || project.description;
     project.dateStart = dateStart || project.dateStart;
     project.dateEnd = dateEnd || project.dateEnd;
+    project.location = location || project.location;
 
     // Додаємо оновлення фото, якщо файл є
     if (req.file) {
@@ -170,5 +173,17 @@ export const leaveProject = async (req, res) => {
     res.status(200).json({ message: "Successfully left the project" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Отримати всі проєкти, у яких користувач є учасником
+export const getMyProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ participants: req.user.id })
+      .populate("organizer", "name email")
+      .populate("participants", "name email");
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
