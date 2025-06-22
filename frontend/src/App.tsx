@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -17,6 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AdminRequestsPage from './pages/AdminRequestsPage';
 import MyProjectsPage from './pages/MyProjectsPage';
 import UsersAdminPage from './pages/UsersAdminPage';
+import Footer from "./components/Footer";
 
 function NavBar() {
   const navigate = useNavigate();
@@ -31,22 +32,59 @@ function NavBar() {
   };
 
   return (
-    <nav style={{ marginBottom: '1rem' }}>
-      <Link to="/">Home</Link> |{" "}
-      <Link to="/projects">Projects</Link> |{" "}
-      {user && <Link to="/my-projects">Мої проєкти</Link>} |{" "}
-      {user && (user.role === "organizer" || user.role === "admin") && (
-        <Link to="/projects/create">Create Project</Link>
-      )} |{" "}
-      {user && user.role === "admin" && (
-        <>
-          <Link to="/admin/requests">Заявки волонтерів</Link> |{" "}
-          <Link to="/admin/users">Користувачі</Link> |{" "}
-        </>
-      )}
-      {token && <Link to="/profile">Профіль</Link>} |{" "}
-      {!token && <><Link to="/login">Login</Link> | <Link to="/signup">Signup</Link> | </>}
-      {token && <button onClick={handleLogout}>Вийти</button>}
+    <nav>
+      <ul className="nav-list">
+        <li>
+          <NavLink to="/" end>
+            🏠 Home
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/projects">📋 Projects</NavLink>
+        </li>
+        {user && (
+          <li>
+            <NavLink to="/my-projects">⭐ Мої проєкти</NavLink>
+          </li>
+        )}
+        {user && (user.role === "organizer" || user.role === "admin") && (
+          <li>
+            <NavLink to="/projects/create">➕ Створити</NavLink>
+          </li>
+        )}
+        {user && user.role === "admin" && (
+          <>
+            <li>
+              <NavLink to="/admin/requests">📝 Заявки</NavLink>
+            </li>
+            <li>
+              <NavLink to="/admin/users">👤 Користувачі</NavLink>
+            </li>
+          </>
+        )}
+        {token && (
+          <li>
+            <NavLink to="/profile">👤 Профіль</NavLink>
+          </li>
+        )}
+        {!token && (
+          <>
+            <li>
+              <NavLink to="/login">🔑 Login</NavLink>
+            </li>
+            <li>
+              <NavLink to="/signup">🆕 Signup</NavLink>
+            </li>
+          </>
+        )}
+        {token && (
+          <li>
+            <button onClick={handleLogout} className="nav-logout-btn">
+              🚪 Вийти
+            </button>
+          </li>
+        )}
+      </ul>
     </nav>
   );
 }
@@ -167,9 +205,8 @@ export default function App() {
                 </PrivateRoute>
               }
             />
-            
           </Routes>
-          {/* <Route path="*" element={<div>Головна сторінка або 404</div>} /> */}
+          <Footer />
         </BrowserRouter>
       </UserUpdateContext.Provider>
     </UserContext.Provider>

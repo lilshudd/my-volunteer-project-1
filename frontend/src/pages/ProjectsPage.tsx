@@ -64,32 +64,29 @@ export default function ProjectsPage() {
       <div style={{ marginBottom: "1rem" }}>
         <CreateProjectButton />
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+      <div className="projects-filters">
         <input
           type="text"
           placeholder="Пошук за назвою..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: "100%", maxWidth: 250 }}
         />
         <input
           type="text"
           placeholder="Пошук за описом..."
           value={descFilter}
           onChange={e => setDescFilter(e.target.value)}
-          style={{ width: "100%", maxWidth: 250 }}
         />
         <input
           type="text"
           placeholder="Пошук за автором..."
           value={authorFilter}
           onChange={e => setAuthorFilter(e.target.value)}
-          style={{ width: "100%", maxWidth: 250 }}
         />
       </div>
-      <h2>Список проєктів</h2>
+      <h2 style={{ marginBottom: "1.2rem" }}>Список проєктів</h2>
       {filteredProjects.length === 0 && <div>Немає проєктів</div>}
-      <ul>
+      <ul className="project-list">
         {filteredProjects.map((project) => (
           <li key={project._id} className="project-card">
             <Link to={`/projects/${project._id}`}>
@@ -100,7 +97,6 @@ export default function ProjectsPage() {
               <img
                 src={`/uploads/${project.image}`}
                 alt="Логотип проєкту"
-                style={{ maxWidth: 100, maxHeight: 100, marginTop: 4 }}
               />
             )}
             <div>

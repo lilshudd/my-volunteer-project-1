@@ -14,6 +14,7 @@ type Project = {
   location?: string;
   dateStart?: string;
   dateEnd?: string;
+  donationLink?: string;
 };
 
 function getUserIdFromToken(): string | null {
@@ -37,6 +38,7 @@ export default function ProjectDetailsPage() {
   const navigate = useNavigate();
 
   const userId = getUserIdFromToken();
+  const isLoggedIn = !!userId;
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -155,6 +157,19 @@ export default function ProjectDetailsPage() {
           {project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "Не вказано"}
         </div>
       </div>
+      {/* Відображення посилання на банку */}
+      {project.donationLink && (
+        <div style={{ margin: "1rem 0" }}>
+          <a
+            href={project.donationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="donation-link"
+          >
+            💳 Підтримати проєкт (донат)
+          </a>
+        </div>
+      )}
       <MDEditor.Markdown source={project.description} />
       {project.image && (
         <img
@@ -174,14 +189,20 @@ export default function ProjectDetailsPage() {
         </div>
       )}
       <div style={{ marginTop: "2rem" }}>
-        {isParticipant ? (
-          <button onClick={handleLeave} disabled={joining}>
-            {joining ? "Вихід..." : "Вийти з проєкту"}
-          </button>
+        {isLoggedIn ? (
+          isParticipant ? (
+            <button onClick={handleLeave} disabled={joining}>
+              {joining ? "Вихід..." : "Вийти з проєкту"}
+            </button>
+          ) : (
+            <button onClick={handleJoin} disabled={joining}>
+              {joining ? "Приєднання..." : "Приєднатися до проєкту"}
+            </button>
+          )
         ) : (
-          <button onClick={handleJoin} disabled={joining}>
-            {joining ? "Приєднання..." : "Приєднатися до проєкту"}
-          </button>
+          <div style={{ color: "#ffe066" }}>
+            Щоб приєднатися до проєкту, <Link to="/login">увійдіть у акаунт</Link>
+          </div>
         )}
         {joinError && <div style={{ color: "red" }}>{joinError}</div>}
       </div>

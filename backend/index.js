@@ -10,6 +10,7 @@ import authRoutes from "./routes/authRoutes.js";
 import protectedRoutes from "./routes/protectedRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
+import statsRoutes from "./routes/statsRoutes.js";
 
 dotenv.config();
 
@@ -38,6 +39,8 @@ app.use("/api/projects", projectRoutes);
 
 // Обробка помилок має бути після роутів
 app.use(errorHandler);
+
+app.use("/api/stats", statsRoutes);
 
 mongoose
   .connect(process.env.MONGODB_URI)

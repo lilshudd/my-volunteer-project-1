@@ -3,14 +3,22 @@ import Project from "../models/Project.js";
 // Створити проєкт
 export const createProject = async (req, res, next) => {
   try {
-    const { title, description, dateStart, dateEnd, location } = req.body;
+    const {
+      title,
+      description,
+      dateStart,
+      dateEnd,
+      location,
+      donationLink,
+      urgent,
+      locationCoords,
+    } = req.body;
 
     if (dateEnd && new Date(dateEnd) < new Date(dateStart)) {
       return res
         .status(400)
         .json({ message: "'dateEnd' cannot be earlier than 'dateStart'" });
     }
-    // Додаємо підтримку фото
     const image = req.file ? req.file.filename : null;
 
     const newProject = new Project({
@@ -19,6 +27,9 @@ export const createProject = async (req, res, next) => {
       dateStart,
       dateEnd,
       location,
+      donationLink,
+      urgent: urgent === "true" || urgent === true,
+      locationCoords: locationCoords ? JSON.parse(locationCoords) : undefined,
       organizer: req.user.id,
       image,
     });
@@ -26,16 +37,22 @@ export const createProject = async (req, res, next) => {
     await newProject.save();
     res.status(201).json(newProject);
   } catch (err) {
-    next(err); // Виклик централізованого errorHandler
+    next(err);
   }
 };
 
-// Отримати всі проєкти
+// Отримати всі проєкти (з фільтрацією по urgent і limit)
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find()
+    const query = {};
+    if (req.query.urgent === "true") query.urgent = true;
+    const limit = Number(req.query.limit) || 0;
+    const projectsQuery = Project.find(query)
       .populate("organizer", "name email")
-      .populate("participants", "name email");
+      .populate("participants", "name email")
+      .sort({ urgent: -1, dateStart: -1 });
+    if (limit) projectsQuery.limit(limit);
+    const projects = await projectsQuery;
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -70,7 +87,16 @@ export const updateProject = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const { title, description, dateStart, dateEnd, location } = req.body;
+    const {
+      title,
+      description,
+      dateStart,
+      dateEnd,
+      location,
+      donationLink,
+      urgent,
+      locationCoords,
+    } = req.body;
 
     if (dateEnd && dateStart && new Date(dateEnd) < new Date(dateStart)) {
       return res
@@ -83,8 +109,12 @@ export const updateProject = async (req, res, next) => {
     project.dateStart = dateStart || project.dateStart;
     project.dateEnd = dateEnd || project.dateEnd;
     project.location = location || project.location;
+    if (donationLink !== undefined) project.donationLink = donationLink;
+    if (urgent !== undefined)
+      project.urgent = urgent === "true" || urgent === true;
+    if (locationCoords !== undefined)
+      project.locationCoords = JSON.parse(locationCoords);
 
-    // Додаємо оновлення фото, якщо файл є
     if (req.file) {
       project.image = req.file.filename;
     }
@@ -102,7 +132,6 @@ export const deleteProject = async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Перевірка власника або admin
     if (
       project.organizer.toString() !== req.user.id &&
       req.user.role !== "admin"
@@ -123,16 +152,14 @@ export const participateInProject = async (req, res) => {
     const projectId = req.params.id;
     const userId = req.user.id;
 
-    // Атомарно додаємо користувача, якщо його ще нема
     const project = await Project.findByIdAndUpdate(
       projectId,
-      { $addToSet: { participants: userId } }, // додає, тільки якщо нема
+      { $addToSet: { participants: userId } },
       { new: true }
     );
 
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Перевірка, чи користувач уже був учасником — якщо ні, то додали, якщо так — то повертаємо повідомлення
     const isParticipant = project.participants.some(
       (p) => p.toString() === userId
     );
@@ -152,21 +179,18 @@ export const leaveProject = async (req, res) => {
     const projectId = req.params.id;
     const userId = req.user.id;
 
-    // Атомарно видаляємо користувача з масиву учасників
     const project = await Project.findByIdAndUpdate(
       projectId,
-      { $pull: { participants: userId } }, // видаляє всі входження userId
+      { $pull: { participants: userId } },
       { new: true }
     );
 
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Перевірка, чи користувач взагалі був учасником (після видалення)
     const isParticipant = project.participants.some(
       (p) => p.toString() === userId
     );
     if (isParticipant) {
-      // Якщо він досі в списку — щось не так
       return res.status(400).json({ message: "You are not a participant" });
     }
 

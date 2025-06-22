@@ -44,23 +44,31 @@ export default function UserProfilePage() {
   if (!user) return <div>Користувача не знайдено</div>;
 
   return (
-    <div className="container">
-      <h2>Профіль користувача</h2>
-      <div><b>Ім'я:</b> {user.name}</div>
-      <div><b>Email:</b> {user.email}</div>
-      <div><b>Роль:</b> {user.role}</div>
+    <div className="profile-container">
+      <div className="profile-title">Профіль користувача</div>
+      <div className="profile-info">
+        <div className="profile-info-row">
+          <b>Ім'я:</b> <span>{user.name}</span>
+        </div>
+        <div className="profile-info-row">
+          <b>Email:</b> <span>{user.email}</span>
+        </div>
+        <div className="profile-info-row">
+          <b>Роль:</b> <span>{user.role}</span>
+        </div>
+      </div>
       <Link to="/profile/edit">
-        <button style={{ marginTop: "1rem" }}>Редагувати профіль</button>
+        <button className="profile-edit-btn">Редагувати профіль</button>
       </Link>
-      <h3 style={{ marginTop: "2rem" }}>Мої проєкти</h3>
+      <div className="profile-projects-title">Мої проєкти</div>
       {user.projects && user.projects.length > 0 ? (
-        <ul>
+        <ul className="profile-projects-list">
           {user.projects.map((p) => (
             <li key={p._id}>{p.name}</li>
           ))}
         </ul>
       ) : (
-        <div>Ви ще не берете участі у жодному проєкті.</div>
+        <div style={{ color: "#b0bec5" }}>Ви ще не берете участі у жодному проєкті.</div>
       )}
     </div>
   );

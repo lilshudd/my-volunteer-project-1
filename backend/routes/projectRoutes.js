@@ -14,6 +14,7 @@ import {
 
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { authorizeRoles } from "../middlewares/roleMiddleware.js";
+import { getStats } from "../controllers/statsController.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -117,5 +118,7 @@ router.delete(
 
 router.post("/:id/participate", authMiddleware, participateInProject);
 router.delete("/:id/participate", authMiddleware, leaveProject);
+
+router.get("/stats", getStats);
 
 export default router;
