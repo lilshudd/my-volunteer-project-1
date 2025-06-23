@@ -1,46 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchWithAuth } from "../api/fetchWithAuth";
-
-type Project = {
-  _id: string;
-  name: string;
-};
-
-type User = {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  projects?: Project[];
-};
+import { useUser } from "../context/UserContext";
 
 export default function UserProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const user = useUser();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetchWithAuth(`/api/auth/me`);
-        if (!res.ok) throw new Error("Не вдалося отримати дані користувача");
-        const data = await res.json();
-        setUser(data);
-      } catch (err: unknown) {
-        if (err instanceof Error) setError(err.message);
-        else setError("Помилка");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  if (loading) return <div>Завантаження...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!user) return <div>Користувача не знайдено</div>;
 
   return (
@@ -64,7 +27,9 @@ export default function UserProfilePage() {
       {user.projects && user.projects.length > 0 ? (
         <ul className="profile-projects-list">
           {user.projects.map((p) => (
-            <li key={p._id}>{p.name}</li>
+            <li key={p._id}>
+              <Link to={`/projects/${p._id}`}>{p.name || p.title}</Link>
+            </li>
           ))}
         </ul>
       ) : (

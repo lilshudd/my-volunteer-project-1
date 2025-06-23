@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchWithAuth } from "../api/fetchWithAuth";
 import MDEditor from "@uiw/react-md-editor";
+import { useUserUpdate } from "../context/UserContext";
 
 type Project = {
   _id: string;
@@ -37,6 +38,7 @@ export default function ProjectDetailsPage() {
   const [joinError, setJoinError] = useState("");
   const navigate = useNavigate();
 
+  const refreshUser = useUserUpdate();
   const userId = getUserIdFromToken();
   const isLoggedIn = !!userId;
 
@@ -79,6 +81,7 @@ export default function ProjectDetailsPage() {
       const updated = await res.json();
       setProject(updated);
       toast.success("Ви приєдналися до проєкту!");
+      await refreshUser(); // ОНОВЛЕННЯ ПРОФІЛЮ
     } catch (err: unknown) {
       if (err instanceof Error) setJoinError(err.message);
       else setJoinError("Помилка приєднання");
@@ -102,6 +105,7 @@ export default function ProjectDetailsPage() {
       const updated = await res.json();
       setProject(updated);
       toast.info("Ви вийшли з проєкту");
+      await refreshUser(); // ОНОВЛЕННЯ ПРОФІЛЮ
     } catch (err: unknown) {
       if (err instanceof Error) setJoinError(err.message);
       else setJoinError("Помилка виходу");
@@ -172,12 +176,12 @@ export default function ProjectDetailsPage() {
       )}
       <MDEditor.Markdown source={project.description} />
       {project.image && (
-        <img
-          src={`/uploads/${project.image}`}
-          alt="Логотип проєкту"
-          style={{ maxWidth: 200, maxHeight: 200, marginBottom: "1rem" }}
-        />
-      )}
+  <img
+    src={`http://localhost:5000/uploads/${project.image}`}
+    alt="Логотип проєкту"
+    style={{ maxWidth: 200, maxHeight: 200, marginBottom: "1rem" }}
+  />
+)}
       {isAuthor && (
         <div style={{ marginTop: "1rem" }}>
           <Link to={`/projects/${project._id}/edit`}>

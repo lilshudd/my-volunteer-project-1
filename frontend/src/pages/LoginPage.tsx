@@ -27,7 +27,7 @@ export default function LoginPage() {
       }
       localStorage.setItem("token", data.accessToken);
       localStorage.setItem("user", JSON.stringify({ name: data.user.name, email: data.user.email, role: data.user.role }));
-      setUser({ name: data.user.name, email: data.user.email, role: data.user.role });
+      await setUser();
       toast.success("Вхід успішний!");
       navigate("/");
     } catch {

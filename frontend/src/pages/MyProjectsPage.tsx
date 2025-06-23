@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchWithAuth } from "../api/fetchWithAuth";
+import { Link } from "react-router-dom";
 
 type Project = {
   _id: string;
@@ -49,18 +50,20 @@ export default function MyProjectsPage() {
   if (loading) return <div>Завантаження...</div>;
 
   return (
-    <div className="container">
-      <h2>Мої проєкти</h2>
+    <div className="my-projects-section">
+      <div className="my-projects-title">Мої проєкти</div>
       {projects.length === 0 ? (
-        <div>Ви ще не берете участь у жодному проєкті.</div>
+        <div style={{ color: "#b0bec5" }}>Ви ще не берете участі у жодному проєкті.</div>
       ) : (
-        <ul>
+        <ul className="my-projects-list">
           {projects.map((p) => (
-            <li key={p._id} style={{ marginBottom: "1rem" }}>
-              <strong>{p.title}</strong>
-              <div>{p.description}</div>
+            <li className="my-project-card" key={p._id}>
+              <strong>
+                <Link to={`/projects/${p._id}`}>{p.title}</Link>
+              </strong>
+              <div className="project-meta">{p.description}</div>
               {p.organizer && (
-                <div>
+                <div className="project-meta">
                   Організатор: {p.organizer.name} ({p.organizer.email})
                 </div>
               )}

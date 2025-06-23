@@ -45,7 +45,7 @@ export default function SignupPage() {
       if (data.accessToken) {
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("user", JSON.stringify({ name: data.user.name, email: data.user.email, role: data.user.role }));
-        setUser({ name: data.user.name, email: data.user.email, role: data.user.role });
+        setUser();
         toast.success("Реєстрація успішна!");
         navigate("/");
       } else {

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProjectsPage from './pages/ProjectsPage';
@@ -36,51 +36,51 @@ function NavBar() {
       <ul className="nav-list">
         <li>
           <NavLink to="/" end>
-            🏠 Home
+            Домашня сторінка
           </NavLink>
         </li>
         <li>
-          <NavLink to="/projects">📋 Projects</NavLink>
+          <NavLink to="/projects">Проєкти</NavLink>
         </li>
         {user && (
           <li>
-            <NavLink to="/my-projects">⭐ Мої проєкти</NavLink>
+            <NavLink to="/my-projects">Мої проєкти</NavLink>
           </li>
         )}
         {user && (user.role === "organizer" || user.role === "admin") && (
           <li>
-            <NavLink to="/projects/create">➕ Створити</NavLink>
+            <NavLink to="/projects/create">Створити</NavLink>
           </li>
         )}
         {user && user.role === "admin" && (
           <>
             <li>
-              <NavLink to="/admin/requests">📝 Заявки</NavLink>
+              <NavLink to="/admin/requests">Заявки</NavLink>
             </li>
             <li>
-              <NavLink to="/admin/users">👤 Користувачі</NavLink>
+              <NavLink to="/admin/users">Користувачі</NavLink>
             </li>
           </>
         )}
         {token && (
           <li>
-            <NavLink to="/profile">👤 Профіль</NavLink>
+            <NavLink to="/profile">Профіль</NavLink>
           </li>
         )}
         {!token && (
           <>
             <li>
-              <NavLink to="/login">🔑 Login</NavLink>
+              <NavLink to="/login">Увійти</NavLink>
             </li>
             <li>
-              <NavLink to="/signup">🆕 Signup</NavLink>
+              <NavLink to="/signup">Зареєструватися</NavLink>
             </li>
           </>
         )}
         {token && (
           <li>
             <button onClick={handleLogout} className="nav-logout-btn">
-              🚪 Вийти
+              Вийти
             </button>
           </li>
         )}
@@ -96,36 +96,38 @@ export default function App() {
   });
   const [prevRole, setPrevRole] = useState<string | null>(user?.role || null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const res = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (prevRole && prevRole !== data.role) {
-            toast.info(`Ваша роль змінена на "${data.role}"`);
-          }
-          setPrevRole(data.role);
-          setUser({ name: data.name, email: data.email, role: data.role });
-          localStorage.setItem("user", JSON.stringify({ name: data.name, email: data.email, role: data.role }));
-        }
-      } catch {
-        // toast.error("Не вдалося отримати профіль користувача");
+  // Оновлена функція для оновлення профілю користувача
+const refreshUser = useCallback(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (prevRole && prevRole !== data.role) {
+        toast.info(`Ваша роль змінена на "${data.role}"`);
       }
-    };
-    fetchProfile();
-    const interval = setInterval(fetchProfile, 30000); // Оновлення кожні 30 секунд
+      setPrevRole(data.role);
+      // Додаємо projects
+      setUser({ name: data.name, email: data.email, role: data.role, projects: data.projects });
+      localStorage.setItem("user", JSON.stringify({ name: data.name, email: data.email, role: data.role, projects: data.projects }));
+    }
+  } catch {
+    // toast.error("Не вдалося отримати профіль користувача");
+  }
+}, [prevRole]);
+
+  useEffect(() => {
+    refreshUser();
+    const interval = setInterval(refreshUser, 30000); // Оновлення кожні 30 секунд
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prevRole]);
+  }, [refreshUser]);
 
   return (
     <UserContext.Provider value={user}>
-      <UserUpdateContext.Provider value={setUser}>
+      <UserUpdateContext.Provider value={refreshUser}>
         <BrowserRouter basename="/my-volunteer-project">
           <NavBar />
           <ToastContainer position="top-right" autoClose={3000} />

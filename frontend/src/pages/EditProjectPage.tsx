@@ -217,11 +217,15 @@ export default function EditProjectPage() {
         </div>
         {currentImage && (
           <div>
-            <img
-              src={`/uploads/${currentImage}`}
-              alt="Логотип проєкту"
-              style={{ maxWidth: 120, maxHeight: 120, marginBottom: "1rem" }}
-            />
+{currentImage && (
+  <div>
+    <img
+      src={`http://localhost:5000/uploads/${currentImage}`}
+      alt="Логотип проєкту"
+      style={{ maxWidth: 120, maxHeight: 120, marginBottom: "1rem" }}
+    />
+  </div>
+)}
           </div>
         )}
         <input

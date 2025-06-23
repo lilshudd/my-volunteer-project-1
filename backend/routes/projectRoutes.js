@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+import path from "path";
 import { body, validationResult } from "express-validator";
 import {
   createProject,
@@ -17,7 +18,18 @@ import { authorizeRoles } from "../middlewares/roleMiddleware.js";
 import { getStats } from "../controllers/statsController.js";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+
+// ОНОВЛЕНИЙ Multer storage для збереження файлів з розширенням
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + ext);
+  },
+});
+const upload = multer({ storage });
 
 router.post(
   "/",

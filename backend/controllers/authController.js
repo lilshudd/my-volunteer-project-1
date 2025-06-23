@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Project from "../models/Project.js";
 
 // Додаємо cookie-parser для роботи з cookie
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
@@ -172,12 +173,24 @@ export const refresh = async (req, res) => {
   }
 };
 
-// Отримання профілю користувача
+// ОНОВЛЕНИЙ метод отримання профілю користувача
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+
+    // Знаходимо всі проєкти, де користувач є учасником
+    const projects = await Project.find({ participants: user._id }).select(
+      "_id name title"
+    );
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      projects, // <-- повертаємо масив проєктів
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -265,7 +278,16 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    const user = await User.findById(id);
+    const user = await User.findById(req.user.id).populate(
+      "projects",
+      "name title"
+    );
+    res.json({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      projects: user.projects, // <-- це важливо!
+    });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.role = role;

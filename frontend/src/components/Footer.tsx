@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="main-footer">
       <div className="footer-content">
         <div className="footer-brand">
-          <img src="/images/logo.svg" alt="Волонтерський хаб" className="footer-logo" />
+          <img src="./images/logo.svg" alt="Волонтерський хаб" className="footer-logo" />
           <div>
             <strong>Волонтерський хаб</strong>
             <div className="footer-desc">
@@ -26,13 +26,13 @@ export default function Footer() {
           </div>
           <div className="footer-socials">
             <a href="https://t.me/yourchannel" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-              <img src="/images/telegram.svg" alt="Telegram" />
+              <img src="./images/telegram.svg" alt="Telegram" />
             </a>
             <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <img src="/images/facebook.svg" alt="Facebook" />
+              <img src="./images/facebook.svg" alt="Facebook" />
             </a>
             <a href="https://instagram.com/yourpage" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <img src="/images/instagram.svg" alt="Instagram" />
+              <img src="./images/instagram.svg" alt="Instagram" />
             </a>
           </div>
         </div>

@@ -39,17 +39,17 @@ const reviews = [
   {
     name: "Олена, Київ",
     text: "Завдяки цій платформі я знайшла чудову команду однодумців. Разом ми допомогли десяткам людей!",
-    avatar: "/images/review1.jpg",
+    avatar: "./images/review1.jpg",
   },
   {
     name: "Ігор, Львів",
     text: "Дуже зручно знаходити актуальні проєкти та долучатися до них. Рекомендую всім волонтерам!",
-    avatar: "/images/review2.jpg",
+    avatar: "./images/review2.jpg",
   },
   {
     name: "Марія, Харків",
     text: "Платформа допомогла зібрати кошти на важливу ініціативу. Дякую за підтримку!",
-    avatar: "/images/review3.jpg",
+    avatar: "./images/review3.jpg",
   },
 ];
 
@@ -78,7 +78,7 @@ export default function HomePage() {
     <div className="container home-hero">
       {/* Головний банер */}
       <div className="home-banner">
-        <img src="/images/main-banner.jpg" alt="Волонтерський хаб" />
+        <img src="./images/main-banner.jpg" alt="Волонтерський хаб" />
       </div>
 
       <h1>Волонтерський хаб</h1>
@@ -135,9 +135,9 @@ export default function HomePage() {
 
       {/* Ряд з ілюстраціями */}
       <div className="home-images-row">
-        <img src="/images/volunteers.svg" alt="Волонтери" />
-        <img src="/images/help.svg" alt="Допомога" />
-        <img src="/images/donation.svg" alt="Донати" />
+        <img src="./images/volunteers.svg" alt="Волонтери" />
+        <img src="./images/help.svg" alt="Допомога" />
+        <img src="./images/donation.svg" alt="Донати" />
       </div>
 
       {/* Секція "Актуальні проєкти" */}

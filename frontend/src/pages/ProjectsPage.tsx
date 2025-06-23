@@ -94,11 +94,11 @@ export default function ProjectsPage() {
             </Link>
             <div>{project.description}</div>
             {project.image && (
-              <img
-                src={`/uploads/${project.image}`}
-                alt="Логотип проєкту"
-              />
-            )}
+  <img
+    src={`http://localhost:5000/uploads/${project.image}`}
+    alt="Логотип проєкту"
+  />
+)}
             <div>
               <small>
                 Автор: {project.organizer?.name || "Невідомо"}
