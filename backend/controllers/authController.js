@@ -173,7 +173,7 @@ export const refresh = async (req, res) => {
   }
 };
 
-// ОНОВЛЕНИЙ метод отримання профілю користувача
+// метод отримання профілю користувача
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -189,7 +189,7 @@ export const getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      projects, // <-- повертаємо масив проєктів
+      projects,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -286,7 +286,7 @@ export const updateUserRole = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      projects: user.projects, // <-- це важливо!
+      projects: user.projects,
     });
     if (!user) return res.status(404).json({ message: "User not found" });
 

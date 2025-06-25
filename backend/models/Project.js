@@ -20,11 +20,11 @@ const projectSchema = new mongoose.Schema({
   image: { type: String },
   createdAt: { type: Date, default: Date.now },
   donationLink: { type: String },
-  urgent: { type: Boolean, default: false }, // <--- ДОДАНО
+  urgent: { type: Boolean, default: false },
   locationCoords: {
     type: [Number], // [latitude, longitude]
     default: undefined,
-  }, // <--- ДОДАНО
+  },
 });
 
 export default mongoose.model("Project", projectSchema);

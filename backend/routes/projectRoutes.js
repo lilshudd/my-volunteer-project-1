@@ -19,7 +19,7 @@ import { getStats } from "../controllers/statsController.js";
 
 const router = express.Router();
 
-// ОНОВЛЕНИЙ Multer storage для збереження файлів з розширенням
+// Multer storage для збереження файлів з розширенням
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-// Простий хук для визначення авторизації (заміни на свій, якщо є)
 function useAuth() {
   const token = localStorage.getItem("accessToken");
   return { isAuth: !!token };

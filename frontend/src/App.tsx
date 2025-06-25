@@ -96,7 +96,7 @@ export default function App() {
   });
   const [prevRole, setPrevRole] = useState<string | null>(user?.role || null);
 
-  // Оновлена функція для оновлення профілю користувача
+  // функція для оновлення профілю користувача
 const refreshUser = useCallback(async () => {
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -110,7 +110,7 @@ const refreshUser = useCallback(async () => {
         toast.info(`Ваша роль змінена на "${data.role}"`);
       }
       setPrevRole(data.role);
-      // Додаємо projects
+
       setUser({ name: data.name, email: data.email, role: data.role, projects: data.projects });
       localStorage.setItem("user", JSON.stringify({ name: data.name, email: data.email, role: data.role, projects: data.projects }));
     }

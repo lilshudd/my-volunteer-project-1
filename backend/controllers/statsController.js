@@ -7,17 +7,11 @@ export const getStats = async (req, res) => {
     const volunteers = await User.countDocuments({
       role: { $in: ["user", "organizer"] },
     });
-    // Якщо потрібно рахувати всіх, крім admin:
-    // const volunteers = await User.countDocuments({ role: { $ne: "admin" } });
-
-    // Якщо у вас є поле donations або інша логіка для підрахунку донатів — додайте тут:
-    // const donations = await Project.aggregate([{ $group: { _id: null, total: { $sum: "$donatedAmount" } } }]);
-    // const donationsSum = donations[0]?.total || 0;
 
     res.json({
       projects,
       volunteers,
-      donations: 0, // Поки що 0, якщо додасте поле — змініть тут
+      donations: 0,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
